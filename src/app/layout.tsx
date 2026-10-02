@@ -1,12 +1,6 @@
 import type { Metadata } from "next";
-import { Barlow_Condensed, Figtree } from "next/font/google";
+import { Figtree } from "next/font/google";
 import "./globals.css";
-
-const barlow = Barlow_Condensed({
-  variable: "--font-barlow",
-  subsets: ["latin", "vietnamese"],
-  weight: ["600", "700", "800"],
-});
 
 const figtree = Figtree({
   variable: "--font-figtree",
@@ -17,7 +11,7 @@ const figtree = Figtree({
 export const metadata: Metadata = {
   title: "Lộ trình tập · 75 → 70kg",
   description:
-    "Lộ trình giảm cân và duy trì với dây kháng lực, xà ngang, tạ 3kg và dây nhảy.",
+    "Lịch tập hằng ngày (khởi động, bài tập, giãn cơ) và thực đơn cho mục tiêu 75 → 70kg.",
   openGraph: {
     title: "Lộ trình tập · 75 → 70kg",
     description:
@@ -29,7 +23,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="vi" className={`${barlow.variable} ${figtree.variable} h-full antialiased`}>
+    <html lang="vi" className={`${figtree.variable} h-full antialiased`}>
       <body className="min-h-full">{children}</body>
     </html>
   );
