@@ -23,15 +23,19 @@ export type Muscle =
 export type Exercise = {
   name: string;
   en: string; // từ khóa tìm video hướng dẫn
+  img?: string; // tên file trong /public/ex
   muscle: Muscle;
   gear: string;
   sets: number;
   reps: string;
-  rest: string;
+  work: number; // giây bấm giờ cho 1 set (cả 2 bên nếu perSide)
+  restSec: number; // nghỉ sau mỗi set; với bài mạch = thời gian chuyển bài
+  perSide?: boolean; // giữa set báo "đổi bên"
+  circuit?: boolean; // các bài circuit liền nhau chạy theo vòng, sets = số vòng
   note: string;
 };
 
-export type Move = { name: string; dose: string; note?: string };
+export type Move = { name: string; dose: string; sec: number; perSide?: boolean; img?: string; note?: string };
 
 export type Food = { name: string; amount: string; kcal: number; protein: number };
 export type Meal = { name: string; foods: Food[] };
@@ -48,66 +52,58 @@ export type Day = {
 /* ---------- Khởi động (7–8 phút) ---------- */
 
 const WARMUP_UPPER: Move[] = [
-  { name: "Nhảy dây chậm", dose: "2 phút" },
-  { name: "Xoay khớp vai trước / sau", dose: "10 + 10" },
-  { name: "Band pull-apart", dose: "15 lần", note: BANDS.nhe },
-  { name: "Band dislocate (cầm dây rộng, vòng qua đầu ra sau lưng)", dose: "10 lần", note: BANDS.nhe },
-  { name: "Cat–cow (bò mèo)", dose: "8 lần" },
-  { name: "Scapular pull-up (treo xà, chỉ nhún bả vai)", dose: "8 lần" },
-  { name: "1 set nhẹ của bài đầu tiên", dose: "12 lần", note: "Dùng dây nhẹ hơn 1 bậc" },
+  { name: "Nhảy dây chậm", dose: "2 phút", sec: 120, img: "rope" },
+  { name: "Xoay tay vòng lớn trước / sau", dose: "10 + 10", sec: 30, img: "arm-circles" },
+  { name: "Band pull-apart", dose: "15 lần", sec: 40, img: "pull-apart", note: BANDS.nhe },
+  { name: "Band dislocate (cầm dây rộng, vòng qua đầu ra sau lưng)", dose: "10 lần", sec: 30, note: BANDS.nhe },
+  { name: "Cat–cow (bò mèo)", dose: "8 lần", sec: 30, img: "cat-cow" },
+  { name: "Scapular pull-up (treo xà, chỉ nhún bả vai)", dose: "8 lần", sec: 30, img: "hang" },
+  { name: "1 set nhẹ của bài đầu tiên", dose: "12 lần", sec: 40, note: "Dùng dây nhẹ hơn 1 bậc" },
 ];
 
 const WARMUP_LOWER: Move[] = [
-  { name: "Nhảy dây chậm", dose: "2 phút" },
-  { name: "Xoay hông, xoay gối, xoay cổ chân", dose: "10 lần mỗi khớp" },
-  { name: "Đá chân trước–sau và sang ngang", dose: "10 lần/chân mỗi hướng" },
-  { name: "Squat không tạ", dose: "15 lần", note: "Xuống chậm 3 giây" },
-  { name: "Glute bridge (nằm nâng hông)", dose: "12 lần" },
-  { name: "World's greatest stretch", dose: "5 lần/bên" },
-  { name: "Hip hinge với thanh ngang trên lưng", dose: "10 lần" },
+  { name: "Nhảy dây chậm", dose: "2 phút", sec: 120, img: "rope" },
+  { name: "Xoay hông, xoay gối, xoay cổ chân", dose: "10 lần mỗi khớp", sec: 45, img: "knee-circles" },
+  { name: "Đá chân trước–sau và sang ngang", dose: "10 lần/chân mỗi hướng", sec: 80, perSide: true },
+  { name: "Squat không tạ", dose: "15 lần", sec: 60, img: "bw-squat", note: "Xuống chậm 3 giây" },
+  { name: "Glute bridge (nằm nâng hông)", dose: "12 lần", sec: 40, img: "bridge" },
+  { name: "World's greatest stretch", dose: "5 lần/bên", sec: 60, perSide: true, img: "wgs" },
+  { name: "Hip hinge (gập hông, lưng thẳng)", dose: "10 lần", sec: 35, img: "good-morning" },
 ];
 
 const WARMUP_FULL: Move[] = [
-  { name: "Đi tại chỗ nâng cao gối", dose: "1 phút" },
-  { name: "Xoay cổ tay, cổ chân, cổ", dose: "30 giây" },
-  { name: "Jumping jack", dose: "1 phút" },
-  { name: "Xoay tay vòng lớn trước / sau", dose: "10 + 10" },
-  { name: "Đá chân trước–sau", dose: "10 lần/chân" },
-  { name: "Inchworm (cúi chạm sàn, bò tay ra plank rồi về)", dose: "5 lần" },
-  { name: "Nhảy dây chậm", dose: "2 phút" },
+  { name: "Đi tại chỗ nâng cao gối", dose: "1 phút", sec: 60 },
+  { name: "Xoay cổ tay, cổ chân, cổ", dose: "30 giây", sec: 30, img: "wrist" },
+  { name: "Jumping jack", dose: "1 phút", sec: 60 },
+  { name: "Xoay tay vòng lớn trước / sau", dose: "10 + 10", sec: 30, img: "arm-circles" },
+  { name: "Đá chân trước–sau", dose: "10 lần/chân", sec: 40, perSide: true },
+  { name: "Inchworm (cúi chạm sàn, bò tay ra plank rồi về)", dose: "5 lần", sec: 50, img: "inchworm" },
+  { name: "Nhảy dây chậm", dose: "2 phút", sec: 120, img: "rope" },
 ];
 
 /* ---------- Giãn cơ (8–10 phút, giữ đều, thở chậm) ---------- */
 
-const COOLDOWN_UPPER: Move[] = [
-  { name: "Giãn ngực ở khung cửa (tay vuông góc, bước tới)", dose: "30 giây/bên" },
-  { name: "Treo xà thả lỏng (giãn xô)", dose: "2 × 20 giây" },
-  { name: "Kéo tay ngang ngực (vai sau)", dose: "30 giây/bên" },
-  { name: "Gập tay qua đầu, kéo khuỷu (tay sau)", dose: "30 giây/bên" },
-  { name: "Áp lòng bàn tay vào tường, xoay người ra (tay trước, cẳng tay)", dose: "30 giây/bên" },
-  { name: "Nghiêng cổ, tay kéo nhẹ đầu", dose: "20 giây/bên" },
-  { name: "Child's pose, hai tay vươn xa", dose: "45 giây" },
-];
+const S = {
+  chest: { name: "Dang 2 tay ra sau, ưỡn ngực (giãn ngực)", dose: "30 giây", sec: 30, img: "chest-stretch" },
+  lat: { name: "Treo xà thả lỏng (giãn xô)", dose: "2 × 20 giây", sec: 45, img: "hang" },
+  crossBody: { name: "Kéo tay ngang ngực (vai sau)", dose: "30 giây/bên", sec: 60, perSide: true, img: "cross-body" },
+  triceps: { name: "Gập tay qua đầu, kéo khuỷu (tay sau)", dose: "30 giây/bên", sec: 60, perSide: true, img: "triceps-stretch" },
+  forearm: { name: "Quỳ, úp lòng bàn tay xuống sàn, ngón hướng về gối, ngả nhẹ ra sau (cẳng tay)", dose: "30 giây", sec: 30, img: "forearm" },
+  neck: { name: "Nghiêng cổ, tay kéo nhẹ đầu", dose: "20 giây/bên", sec: 40, perSide: true, img: "neck" },
+  child: { name: "Child's pose, hai tay vươn xa", dose: "45 giây", sec: 45, img: "child" },
+  quad: { name: "Nằm nghiêng, dây nhẹ quấn bàn chân, kéo gót về mông (đùi trước)", dose: "30 giây/bên", sec: 60, perSide: true, img: "quad" },
+  hamstring: { name: "Nằm ngửa, dùng dây nhẹ kéo chân thẳng lên (đùi sau)", dose: "30 giây/bên", sec: 60, perSide: true, img: "hamstring" },
+  figure4: { name: "Nằm vắt chân hình số 4 (mông)", dose: "30 giây/bên", sec: 60, perSide: true, img: "figure4" },
+  hipFlexor: { name: "Quỳ 1 gối, đẩy hông ra trước (cơ gập hông)", dose: "30 giây/bên", sec: 60, perSide: true, img: "hip-flexor" },
+  groin: { name: "Ngồi chụm 2 lòng bàn chân, ấn nhẹ gối xuống (đùi trong)", dose: "30 giây", sec: 30, img: "groin" },
+  calf: { name: "Chống tay vào tường, duỗi gót (bắp chân)", dose: "30 giây/bên", sec: 60, perSide: true, img: "calf-stretch" },
+  twist: { name: "Nằm ngửa xoắn cột sống", dose: "30 giây/bên", sec: 60, perSide: true },
+  cobra: { name: "Cobra (nằm sấp chống tay, ưỡn ngực — giãn bụng)", dose: "30 giây", sec: 30 },
+} satisfies Record<string, Move>;
 
-const COOLDOWN_LOWER: Move[] = [
-  { name: "Đứng kéo gót chạm mông (đùi trước)", dose: "30 giây/bên" },
-  { name: "Nằm ngửa, dùng dây nhẹ kéo chân thẳng lên (đùi sau)", dose: "30 giây/bên" },
-  { name: "Nằm vắt chân hình số 4 (mông)", dose: "30 giây/bên" },
-  { name: "Quỳ 1 gối, đẩy hông ra trước (cơ gập hông)", dose: "30 giây/bên" },
-  { name: "Ngồi xoạc chữ V, cúi người (đùi trong)", dose: "30 giây" },
-  { name: "Chống tay vào tường, duỗi gót (bắp chân)", dose: "30 giây/bên" },
-  { name: "Nằm ngửa xoắn cột sống", dose: "30 giây/bên" },
-];
-
-const COOLDOWN_FULL: Move[] = [
-  { name: "Chống tay vào tường, duỗi gót (bắp chân)", dose: "30 giây/bên" },
-  { name: "Đứng kéo gót chạm mông (đùi trước)", dose: "30 giây/bên" },
-  { name: "Quỳ 1 gối, đẩy hông ra trước (cơ gập hông)", dose: "30 giây/bên" },
-  { name: "Nằm ngửa, dùng dây nhẹ kéo chân thẳng lên (đùi sau)", dose: "30 giây/bên" },
-  { name: "Giãn ngực ở khung cửa", dose: "30 giây/bên" },
-  { name: "Cobra (nằm sấp chống tay, ưỡn ngực — giãn bụng)", dose: "30 giây" },
-  { name: "Child's pose", dose: "45 giây" },
-];
+const COOLDOWN_UPPER: Move[] = [S.chest, S.lat, S.crossBody, S.triceps, S.forearm, S.neck, S.child];
+const COOLDOWN_LOWER: Move[] = [S.quad, S.hamstring, S.figure4, S.hipFlexor, S.groin, S.calf, S.twist];
+const COOLDOWN_FULL: Move[] = [S.calf, S.quad, S.hipFlexor, S.hamstring, S.chest, S.cobra, S.child];
 
 /* ---------- Thực đơn ~2.000 kcal, ~140g đạm (khối lượng thịt/cá là SỐNG, cơm là CHÍN) ---------- */
 
@@ -150,13 +146,13 @@ export const WEEK: Day[] = [
     focus: "Thân trên A · ưu tiên đẩy",
     warmup: WARMUP_UPPER,
     workout: [
-      { name: "Band chest press", en: "resistance band chest press", muscle: "Ngực", gear: `${BANDS.nang} (neo sau lưng)`, sets: 4, reps: "10–12", rest: "90s", note: "Đẩy ngang ngực, siết 1 giây cuối tầm, về chậm 3 giây." },
-      { name: "Band seated row", en: "resistance band seated row", muscle: "Lưng", gear: `${BANDS.nang} (vòng qua bàn chân)`, sets: 4, reps: "10–12", rest: "90s", note: "Kéo khuỷu về hông, ép 2 bả vai, ngực mở." },
-      { name: "Band overhead press", en: "resistance band overhead press", muscle: "Vai", gear: `${BANDS.vua} (đứng lên dây)`, sets: 4, reps: "10–12", rest: "75s", note: "Siết bụng + mông, không ưỡn lưng khi đẩy lên." },
-      { name: "Pull-up (hỗ trợ dây nếu cần)", en: "band assisted pull up", muscle: "Lưng", gear: `Xà + ${BANDS.nang} để hỗ trợ`, sets: 3, reps: "tối đa (5–8)", rest: "2 phút", note: "Dây càng nặng hỗ trợ càng nhiều. Khỏe dần → đổi sang dây vừa, dây nhẹ, rồi bỏ dây." },
-      { name: "Band triceps pushdown", en: "resistance band triceps pushdown", muscle: "Tay sau", gear: `${BANDS.nhe} (neo trên xà)`, sets: 3, reps: "12–15", rest: "60s", note: "Khuỷu ghim sát sườn, chỉ cẳng tay di chuyển." },
-      { name: "Band biceps curl", en: "resistance band bicep curl", muscle: "Tay trước", gear: `${BANDS.vua} (đứng lên dây)`, sets: 3, reps: "12–15", rest: "60s", note: "Không đung đưa người, hạ chậm." },
-      { name: "Band pull-apart", en: "band pull apart", muscle: "Vai sau", gear: BANDS.nhe, sets: 2, reps: "15–20", rest: "45s", note: "Tay thẳng, kéo dây chạm ngực, ép bả vai." },
+      { name: "Band chest press", en: "resistance band chest press", img: "chest-press", muscle: "Ngực", gear: `${BANDS.nang} (neo sau lưng)`, sets: 4, reps: "10–12 lần", work: 45, restSec: 90, note: "Đẩy ngang ngực, siết 1 giây cuối tầm, về chậm 3 giây." },
+      { name: "Band seated row", en: "resistance band seated row", img: "seated-row", muscle: "Lưng", gear: `${BANDS.nang} (vòng qua bàn chân)`, sets: 4, reps: "10–12 lần", work: 45, restSec: 90, note: "Kéo khuỷu về hông, ép 2 bả vai, ngực mở." },
+      { name: "Band overhead press", en: "resistance band overhead press", img: "ohp", muscle: "Vai", gear: `${BANDS.vua} (đứng lên dây)`, sets: 4, reps: "10–12 lần", work: 45, restSec: 75, note: "Siết bụng + mông, không ưỡn lưng khi đẩy lên." },
+      { name: "Pull-up (hỗ trợ dây nếu cần)", en: "band assisted pull up", img: "assisted-pullup", muscle: "Lưng", gear: `Xà + ${BANDS.nang} để hỗ trợ`, sets: 3, reps: "tối đa (5–8 lần)", work: 40, restSec: 120, note: "Dây càng nặng hỗ trợ càng nhiều. Khỏe dần → dây vừa → dây nhẹ → bỏ dây." },
+      { name: "Band triceps pushdown", en: "resistance band triceps pushdown", img: "pushdown", muscle: "Tay sau", gear: `${BANDS.nhe} (neo trên xà)`, sets: 3, reps: "12–15 lần", work: 45, restSec: 60, note: "Khuỷu ghim sát sườn, chỉ cẳng tay di chuyển." },
+      { name: "Band biceps curl", en: "resistance band bicep curl", img: "curl", muscle: "Tay trước", gear: `${BANDS.vua} (đứng lên dây)`, sets: 3, reps: "12–15 lần", work: 45, restSec: 60, note: "Không đung đưa người, hạ chậm." },
+      { name: "Band pull-apart", en: "band pull apart", img: "pull-apart", muscle: "Vai sau", gear: BANDS.nhe, sets: 2, reps: "15–20 lần", work: 45, restSec: 45, note: "Tay thẳng, kéo dây chạm ngực, ép bả vai." },
     ],
     cooldown: COOLDOWN_UPPER,
     menu: [
@@ -171,13 +167,13 @@ export const WEEK: Day[] = [
     focus: "Thân dưới A · ưu tiên squat",
     warmup: WARMUP_LOWER,
     workout: [
-      { name: "Band squat", en: "resistance band squat", muscle: "Đùi trước", gear: `${BANDS.nang} (đứng lên dây, thanh ngang trên vai)`, sets: 4, reps: "12–15", rest: "90s", note: "Gối theo mũi chân, xuống tới đùi song song sàn, đạp gót đứng lên." },
-      { name: "Band Romanian deadlift", en: "resistance band romanian deadlift", muscle: "Đùi sau", gear: `${BANDS.nang} (đứng lên dây, thanh ngang)`, sets: 3, reps: "10–12", rest: "90s", note: "Lưng thẳng, đẩy hông ra sau tới khi căng sau đùi, đẩy hông về trước." },
-      { name: "Band split squat", en: "resistance band split squat", muscle: "Đùi trước", gear: `${BANDS.vua} (chân trước đạp dây)`, sets: 3, reps: "10/chân", rest: "60s", note: "Gối sau xuống gần chạm sàn, thân thẳng." },
-      { name: "Glute bridge 1 chân", en: "single leg glute bridge", muscle: "Mông", gear: "Không dụng cụ", sets: 3, reps: "12/chân", rest: "60s", note: "Siết mông 2 giây ở đỉnh, không ưỡn lưng." },
-      { name: "Band calf raise", en: "resistance band calf raise", muscle: "Bắp chân", gear: `${BANDS.nang} (đứng lên dây)`, sets: 4, reps: "15–20", rest: "45s", note: "Kiễng hết cỡ, giữ 1 giây, hạ chậm." },
-      { name: "Plank", en: "plank proper form", muscle: "Core", gear: "Không dụng cụ", sets: 3, reps: "40–60 giây", rest: "45s", note: "Siết mông + bụng, người thẳng một đường." },
-      { name: "Dead bug", en: "dead bug exercise", muscle: "Core", gear: "Không dụng cụ", sets: 3, reps: "10/bên", rest: "45s", note: "Lưng dưới luôn ép sát sàn." },
+      { name: "Band squat", en: "resistance band squat", img: "squat", muscle: "Đùi trước", gear: `${BANDS.nang} (đứng lên dây, thanh ngang trên vai)`, sets: 4, reps: "12–15 lần", work: 50, restSec: 90, note: "Gối theo mũi chân, xuống tới đùi song song sàn, đạp gót đứng lên." },
+      { name: "Band Romanian deadlift", en: "resistance band romanian deadlift", img: "rdl", muscle: "Đùi sau", gear: `${BANDS.nang} (đứng lên dây, thanh ngang)`, sets: 3, reps: "10–12 lần", work: 45, restSec: 90, note: "Lưng thẳng, đẩy hông ra sau tới khi căng sau đùi, đẩy hông về trước." },
+      { name: "Band split squat", en: "resistance band split squat", img: "split-squat", muscle: "Đùi trước", gear: `${BANDS.vua} (chân trước đạp dây)`, sets: 3, reps: "10 lần/chân", work: 70, restSec: 60, perSide: true, note: "Gối sau xuống gần chạm sàn, thân thẳng." },
+      { name: "Glute bridge 1 chân", en: "single leg glute bridge", img: "single-bridge", muscle: "Mông", gear: "Không dụng cụ", sets: 3, reps: "12 lần/chân", work: 70, restSec: 60, perSide: true, note: "Siết mông 2 giây ở đỉnh, không ưỡn lưng." },
+      { name: "Band calf raise", en: "resistance band calf raise", img: "calf-band", muscle: "Bắp chân", gear: `${BANDS.nang} (đứng lên dây)`, sets: 4, reps: "15–20 lần", work: 45, restSec: 45, note: "Kiễng hết cỡ, giữ 1 giây, hạ chậm." },
+      { name: "Plank", en: "plank proper form", img: "plank", muscle: "Core", gear: "Không dụng cụ", sets: 3, reps: "giữ 45 giây", work: 45, restSec: 45, note: "Siết mông + bụng, người thẳng một đường." },
+      { name: "Dead bug", en: "dead bug exercise", img: "dead-bug", muscle: "Core", gear: "Không dụng cụ", sets: 3, reps: "10 lần/bên, luân phiên", work: 50, restSec: 45, note: "Lưng dưới luôn ép sát sàn." },
     ],
     cooldown: COOLDOWN_LOWER,
     menu: [
@@ -192,12 +188,12 @@ export const WEEK: Day[] = [
     focus: "Cardio dây nhảy + core",
     warmup: WARMUP_FULL,
     workout: [
-      { name: "Nhảy dây HIIT", en: "jump rope hiit workout", muscle: "Cardio", gear: "Dây nhảy", sets: 12, reps: "30s nhảy / 30s nghỉ", rest: "—", note: "Nhảy thấp bằng mũi chân, cổ tay quay. Đau ống chân → giảm còn 8 hiệp." },
-      { name: "Pallof press", en: "band pallof press", muscle: "Core", gear: `${BANDS.vua} (neo ngang ngực)`, sets: 3, reps: "12/bên", rest: "45s", note: "Đẩy thẳng ra trước, không để thân bị xoay theo dây." },
-      { name: "Hanging knee raise", en: "hanging knee raise", muscle: "Core", gear: "Xà", sets: 3, reps: "10–15", rest: "60s", note: "Kéo gối lên ngực, không đung đưa. Yếu tay → nằm gập gối." },
-      { name: "Band woodchop", en: "resistance band woodchop", muscle: "Core", gear: `${BANDS.nhe} (neo cao)`, sets: 3, reps: "12/bên", rest: "45s", note: "Xoay từ hông và thân, tay giữ thẳng." },
-      { name: "Band face pull", en: "resistance band face pull", muscle: "Vai sau", gear: `${BANDS.nhe} (neo cao)`, sets: 3, reps: "15", rest: "45s", note: "Kéo về mặt, khuỷu cao, xoay ngoài ở cuối." },
-      { name: "Dead hang", en: "dead hang", muscle: "Cẳng tay", gear: "Xà", sets: 3, reps: "30–45 giây", rest: "60s", note: "Treo thả lỏng vai — tốt cho cột sống và lực nắm." },
+      { name: "Nhảy dây HIIT", en: "jump rope hiit workout", img: "rope", muscle: "Cardio", gear: "Dây nhảy", sets: 12, reps: "nhảy nhanh 30 giây", work: 30, restSec: 30, note: "Nhảy thấp bằng mũi chân, cổ tay quay. Đau ống chân → dừng ở hiệp 8." },
+      { name: "Pallof press", en: "band pallof press", img: "pallof", muscle: "Core", gear: `${BANDS.vua} (neo ngang ngực)`, sets: 3, reps: "12 lần/bên", work: 70, restSec: 45, perSide: true, note: "Đẩy thẳng ra trước, không để thân bị xoay theo dây." },
+      { name: "Hanging knee raise", en: "hanging knee raise", img: "knee-raise", muscle: "Core", gear: "Xà", sets: 3, reps: "10–15 lần", work: 40, restSec: 60, note: "Kéo gối lên ngực, không đung đưa. Yếu tay → nằm gập gối." },
+      { name: "Band woodchop", en: "resistance band woodchop", img: "woodchop", muscle: "Core", gear: `${BANDS.nhe} (neo cao)`, sets: 3, reps: "12 lần/bên", work: 70, restSec: 45, perSide: true, note: "Xoay từ hông và thân, tay giữ thẳng." },
+      { name: "Band face pull", en: "resistance band face pull", img: "face-pull", muscle: "Vai sau", gear: `${BANDS.nhe} (neo cao)`, sets: 3, reps: "15 lần", work: 45, restSec: 45, note: "Kéo về mặt, khuỷu cao, xoay ngoài ở cuối." },
+      { name: "Dead hang", en: "dead hang", img: "hang", muscle: "Cẳng tay", gear: "Xà", sets: 3, reps: "treo 30–45 giây", work: 40, restSec: 60, note: "Treo thả lỏng vai — tốt cho cột sống và lực nắm." },
     ],
     cooldown: COOLDOWN_FULL,
     menu: [
@@ -212,13 +208,13 @@ export const WEEK: Day[] = [
     focus: "Thân trên B · ưu tiên kéo",
     warmup: WARMUP_UPPER,
     workout: [
-      { name: "Pull-up / chin-up", en: "chin up proper form", muscle: "Lưng", gear: `Xà (+ ${BANDS.nang} nếu cần hỗ trợ)`, sets: 4, reps: "tối đa", rest: "2 phút", note: "Kéo ngực về xà, hạ chậm 3 giây. Mỗi tuần cố +1 rep tổng." },
-      { name: "Band bent-over row", en: "resistance band bent over row", muscle: "Lưng", gear: `${BANDS.nang} (đứng lên dây, thanh ngang)`, sets: 3, reps: "10–12", rest: "90s", note: "Gập người ~45°, lưng thẳng, kéo thanh về rốn." },
-      { name: "Chống đẩy", en: "push up proper form", muscle: "Ngực", gear: `Tay cầm (dễ quá → quàng ${BANDS.vua} qua lưng)`, sets: 4, reps: "10–15", rest: "75s", note: "Khuỷu ~45° so với thân, ngực chạm gần sàn." },
-      { name: "Lateral raise", en: "dumbbell lateral raise", muscle: "Vai", gear: `Tạ 3kg hoặc ${BANDS.nhe}`, sets: 3, reps: "15–20", rest: "60s", note: "Nâng tới ngang vai, 2 giây lên / 3 giây xuống." },
-      { name: "Band face pull", en: "resistance band face pull", muscle: "Vai sau", gear: `${BANDS.nhe} (neo cao)`, sets: 3, reps: "15", rest: "45s", note: "Khuỷu cao ngang vai, ép bả vai." },
-      { name: "Band hammer curl", en: "resistance band hammer curl", muscle: "Tay trước", gear: BANDS.vua, sets: 3, reps: "12", rest: "60s", note: "Lòng bàn tay hướng vào nhau." },
-      { name: "Band overhead triceps extension", en: "resistance band overhead tricep extension", muscle: "Tay sau", gear: `${BANDS.nhe} (đạp dây phía sau)`, sets: 3, reps: "12–15", rest: "60s", note: "Khuỷu chĩa lên trời, chỉ duỗi cẳng tay." },
+      { name: "Pull-up / chin-up", en: "chin up proper form", img: "chin-up", muscle: "Lưng", gear: `Xà (+ ${BANDS.nang} nếu cần hỗ trợ)`, sets: 4, reps: "tối đa", work: 40, restSec: 120, note: "Kéo ngực về xà, hạ chậm 3 giây. Mỗi tuần cố +1 rep tổng." },
+      { name: "Band bent-over row", en: "resistance band bent over row", img: "bent-row", muscle: "Lưng", gear: `${BANDS.nang} (đứng lên dây, thanh ngang)`, sets: 3, reps: "10–12 lần", work: 45, restSec: 90, note: "Gập người ~45°, lưng thẳng, kéo thanh về rốn." },
+      { name: "Chống đẩy", en: "push up proper form", img: "pushup", muscle: "Ngực", gear: `Tay cầm (dễ quá → quàng ${BANDS.vua} qua lưng)`, sets: 4, reps: "10–15 lần", work: 45, restSec: 75, note: "Khuỷu ~45° so với thân, ngực chạm gần sàn." },
+      { name: "Lateral raise", en: "dumbbell lateral raise", img: "lateral-raise", muscle: "Vai", gear: `Tạ 3kg hoặc ${BANDS.nhe}`, sets: 3, reps: "15–20 lần", work: 50, restSec: 60, note: "Nâng tới ngang vai, 2 giây lên / 3 giây xuống." },
+      { name: "Band face pull", en: "resistance band face pull", img: "face-pull", muscle: "Vai sau", gear: `${BANDS.nhe} (neo cao)`, sets: 3, reps: "15 lần", work: 45, restSec: 45, note: "Khuỷu cao ngang vai, ép bả vai." },
+      { name: "Band hammer curl", en: "resistance band hammer curl", img: "hammer", muscle: "Tay trước", gear: BANDS.vua, sets: 3, reps: "12 lần", work: 40, restSec: 60, note: "Lòng bàn tay hướng vào nhau." },
+      { name: "Band overhead triceps extension", en: "resistance band overhead tricep extension", img: "oh-triceps", muscle: "Tay sau", gear: `${BANDS.nhe} (đạp dây phía sau)`, sets: 3, reps: "12–15 lần", work: 45, restSec: 60, note: "Khuỷu chĩa lên trời, chỉ duỗi cẳng tay." },
     ],
     cooldown: COOLDOWN_UPPER,
     menu: [
@@ -233,13 +229,13 @@ export const WEEK: Day[] = [
     focus: "Thân dưới B · ưu tiên hông",
     warmup: WARMUP_LOWER,
     workout: [
-      { name: "Band deadlift", en: "resistance band deadlift", muscle: "Đùi sau", gear: `${BANDS.nang} (đứng lên dây, thanh ngang)`, sets: 3, reps: "10–12", rest: "90s", note: "Đẩy sàn bằng chân, hông và vai lên cùng lúc, lưng thẳng." },
-      { name: "Band squat (xuống chậm 3 giây)", en: "resistance band squat", muscle: "Đùi trước", gear: `${BANDS.nang} (thanh ngang trên vai)`, sets: 3, reps: "12", rest: "90s", note: "Xuống 3 giây, dừng 1 giây ở đáy." },
-      { name: "Band leg curl nằm sấp", en: "resistance band lying leg curl", muscle: "Đùi sau", gear: `${BANDS.nhe} (neo thấp, quấn cổ chân)`, sets: 3, reps: "12–15", rest: "60s", note: "Co gót về mông, hạ chậm. Dễ quá → dây vừa." },
-      { name: "Lateral lunge", en: "lateral lunge", muscle: "Đùi trước", gear: "Ôm tạ 3kg trước ngực", sets: 3, reps: "10/bên", rest: "60s", note: "Bước ngang rộng, đẩy hông ra sau, chân còn lại thẳng." },
-      { name: "Band glute kickback", en: "resistance band glute kickback", muscle: "Mông", gear: `${BANDS.nhe} (neo thấp, quấn cổ chân)`, sets: 3, reps: "15/chân", rest: "45s", note: "Đá chân ra sau bằng mông, không ưỡn lưng." },
-      { name: "Calf raise 1 chân", en: "single leg calf raise", muscle: "Bắp chân", gear: "Cầm tạ 3kg, vịn tường", sets: 3, reps: "15/chân", rest: "45s", note: "Đứng trên bậc thềm để hạ gót sâu hơn." },
-      { name: "Side plank", en: "side plank", muscle: "Core", gear: "Không dụng cụ", sets: 3, reps: "30 giây/bên", rest: "30s", note: "Hông nâng cao, người thẳng." },
+      { name: "Band deadlift", en: "resistance band deadlift", img: "deadlift", muscle: "Đùi sau", gear: `${BANDS.nang} (đứng lên dây, thanh ngang)`, sets: 3, reps: "10–12 lần", work: 45, restSec: 90, note: "Đẩy sàn bằng chân, hông và vai lên cùng lúc, lưng thẳng." },
+      { name: "Band squat (xuống chậm 3 giây)", en: "resistance band squat", img: "squat", muscle: "Đùi trước", gear: `${BANDS.nang} (thanh ngang trên vai)`, sets: 3, reps: "12 lần", work: 60, restSec: 90, note: "Xuống 3 giây, dừng 1 giây ở đáy." },
+      { name: "Band leg curl nằm sấp", en: "resistance band lying leg curl", img: "leg-curl", muscle: "Đùi sau", gear: `${BANDS.nhe} (neo thấp, quấn cổ chân)`, sets: 3, reps: "12–15 lần", work: 45, restSec: 60, note: "Co gót về mông, hạ chậm. Dễ quá → dây vừa." },
+      { name: "Lateral lunge", en: "lateral lunge", img: "lateral-lunge", muscle: "Đùi trước", gear: "Ôm tạ 3kg trước ngực", sets: 3, reps: "10 lần/bên", work: 70, restSec: 60, perSide: true, note: "Bước ngang rộng, đẩy hông ra sau, chân còn lại thẳng." },
+      { name: "Band glute kickback", en: "resistance band donkey kickback", img: "kickback", muscle: "Mông", gear: `${BANDS.nhe} (quấn bàn chân, 2 tay đè 2 đầu dây)`, sets: 3, reps: "15 lần/chân", work: 80, restSec: 45, perSide: true, note: "Tư thế bò, đạp gót lên trần bằng mông, không ưỡn lưng." },
+      { name: "Calf raise 1 chân", en: "single leg calf raise", img: "calf-single", muscle: "Bắp chân", gear: "Cầm tạ 3kg, vịn tường", sets: 3, reps: "15 lần/chân", work: 70, restSec: 45, perSide: true, note: "Đứng trên bậc thềm để hạ gót sâu hơn." },
+      { name: "Side plank", en: "side plank", img: "side-plank", muscle: "Core", gear: "Không dụng cụ", sets: 3, reps: "giữ 30 giây/bên", work: 60, restSec: 30, perSide: true, note: "Hông nâng cao, người thẳng." },
     ],
     cooldown: COOLDOWN_LOWER,
     menu: [
@@ -254,12 +250,12 @@ export const WEEK: Day[] = [
     focus: "Toàn thân mạch + nhảy dây bền",
     warmup: WARMUP_FULL,
     workout: [
-      { name: "Squat to press (mạch 1)", en: "resistance band thruster", muscle: "Toàn thân", gear: `${BANDS.vua} (đứng lên dây)`, sets: 4, reps: "40s làm / 20s chuyển", rest: "—", note: "Squat xuống, đứng lên đẩy luôn tay qua đầu." },
-      { name: "Band row (mạch 2)", en: "resistance band row", muscle: "Lưng", gear: `${BANDS.nang} (neo ngang ngực)`, sets: 4, reps: "40s làm / 20s chuyển", rest: "—", note: "Giữ nhịp đều, ép bả vai mỗi rep." },
-      { name: "Chống đẩy (mạch 3)", en: "push up proper form", muscle: "Ngực", gear: "Tay cầm", sets: 4, reps: "40s làm / 20s chuyển", rest: "—", note: "Mỏi → chống gối, không bỏ dở." },
-      { name: "Band deadlift (mạch 4)", en: "resistance band deadlift", muscle: "Đùi sau", gear: `${BANDS.nang} (thanh ngang)`, sets: 4, reps: "40s làm / 20s chuyển", rest: "—", note: "Lưng thẳng dù đang mệt." },
-      { name: "Mountain climber (mạch 5)", en: "mountain climber", muscle: "Core", gear: "Không dụng cụ", sets: 4, reps: "40s làm", rest: "90s sau mỗi vòng", note: "Hết 5 bài = 1 vòng. Làm 4 vòng." },
-      { name: "Nhảy dây đều", en: "jump rope steady state", muscle: "Cardio", gear: "Dây nhảy", sets: 1, reps: "12–15 phút", rest: "—", note: "Nhịp vừa phải, vẫn nói được câu ngắn. Vấp thì nhảy tiếp." },
+      { name: "Squat to press", en: "resistance band thruster", img: "thruster", muscle: "Toàn thân", gear: `${BANDS.vua} (đứng lên dây)`, sets: 4, reps: "liên tục 40 giây", work: 40, restSec: 20, circuit: true, note: "Squat xuống, đứng lên đẩy luôn tay qua đầu." },
+      { name: "Band row", en: "resistance band row", img: "seated-row", muscle: "Lưng", gear: `${BANDS.nang} (neo ngang ngực)`, sets: 4, reps: "liên tục 40 giây", work: 40, restSec: 20, circuit: true, note: "Giữ nhịp đều, ép bả vai mỗi rep." },
+      { name: "Chống đẩy", en: "push up proper form", img: "pushup", muscle: "Ngực", gear: "Tay cầm", sets: 4, reps: "liên tục 40 giây", work: 40, restSec: 20, circuit: true, note: "Mỏi → chống gối, không bỏ dở." },
+      { name: "Band deadlift", en: "resistance band deadlift", img: "deadlift", muscle: "Đùi sau", gear: `${BANDS.nang} (thanh ngang)`, sets: 4, reps: "liên tục 40 giây", work: 40, restSec: 20, circuit: true, note: "Lưng thẳng dù đang mệt." },
+      { name: "Mountain climber", en: "mountain climber", img: "mountain", muscle: "Core", gear: "Không dụng cụ", sets: 4, reps: "liên tục 40 giây", work: 40, restSec: 90, circuit: true, note: "Hết bài này = xong 1 vòng, nghỉ 90 giây. Làm 4 vòng." },
+      { name: "Nhảy dây đều", en: "jump rope steady state", img: "rope", muscle: "Cardio", gear: "Dây nhảy", sets: 1, reps: "nhịp vừa 13 phút", work: 780, restSec: 0, note: "Nhịp vừa phải, vẫn nói được câu ngắn. Vấp thì nhảy tiếp." },
     ],
     cooldown: COOLDOWN_FULL,
     menu: [
@@ -274,9 +270,9 @@ export const WEEK: Day[] = [
     focus: "Nghỉ · đi bộ + giãn cơ",
     warmup: [],
     workout: [
-      { name: "Đi bộ nhanh ngoài trời", en: "brisk walking", muscle: "Cardio", gear: "—", sets: 1, reps: "30–45 phút", rest: "—", note: "Nhẹ nhàng, không tính là buổi tập. Cơ thể phục hồi để tuần sau khỏe hơn." },
+      { name: "Đi bộ nhanh ngoài trời", en: "brisk walking", img: "walk", muscle: "Cardio", gear: "—", sets: 1, reps: "30 phút", work: 1800, restSec: 0, note: "Nhẹ nhàng, không tính là buổi tập. Cơ thể phục hồi để tuần sau khỏe hơn." },
     ],
-    cooldown: [...COOLDOWN_LOWER, ...COOLDOWN_UPPER.slice(0, 4)],
+    cooldown: [...COOLDOWN_LOWER, S.chest, S.crossBody, S.triceps, S.child],
     menu: [
       { name: "Sáng", foods: [F.yenMach, F.suaTuoi, F.trung3] },
       { name: "Trưa", foods: [F.com120, F.bo150, F.rau, F.canh, F.dau] },

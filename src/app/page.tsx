@@ -21,6 +21,14 @@ export default function Home() {
           ))}
         </ul>
       </section>
+
+      <footer className="muted small credit">
+        Hình minh họa:{" "}
+        <a href="https://github.com/yuhonas/free-exercise-db" target="_blank" rel="noreferrer">
+          free-exercise-db
+        </a>{" "}
+        (public domain). Một số hình dùng tạ/cáp thay dây — tư thế và hướng lực giống nhau.
+      </footer>
     </main>
   );
 }
